@@ -15,10 +15,30 @@
           - python3-pip
           - python3-venv
           - git
-          - certbot
-          - python3-certbot-nginx
+          - nginx
+          - snapd
         state: present
         update_cache: yes
+
+    - name: Install core snap
+      command: snap install core
+      args:
+        creates: /snap/bin/core
+
+    - name: Refresh core snap
+      command: snap refresh core
+
+    - name: Install certbot via snap
+      command: snap install --classic certbot
+      args:
+        creates: /snap/bin/certbot
+
+    - name: Create symlink for certbot
+      file:
+        src: /snap/bin/certbot
+        dest: /usr/bin/certbot
+        state: link
+        force: yes
 
     - name: Create certificates directory
       file:
