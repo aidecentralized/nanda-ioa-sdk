@@ -124,6 +124,11 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             if stderr:
                 logger.error(f"Ansible playbook error: {stderr}")
                 return False
+
+            # Check if the playbook failed by looking for "failed=1" in the output
+            if "failed=1" in stdout:
+                logger.error("Ansible playbook failed with errors")
+                return False
                 
             logger.info("Server setup completed successfully")
             return True
