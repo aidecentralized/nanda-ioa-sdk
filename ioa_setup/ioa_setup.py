@@ -82,7 +82,7 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             f.write(inventory_content)
         return inventory_path
 
-    def setup_server(self, anthropic_api_key: str) -> bool:
+    def setup_server(self, anthropic_api_key: str, verbose: bool = False) -> bool:
         """Set up the server using Ansible"""
         inventory_path = None
         group_vars_dir = None
@@ -111,13 +111,18 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             # Get the path to the local Ansible playbook
             current_dir = os.path.dirname(os.path.abspath(__file__))
             playbook_path = os.path.join(current_dir, "ansible", "playbook.yml")
+            logger.info(f"Using playbook at: {playbook_path}")
             
-            # Run Ansible playbook
-            cmd = f"ansible-playbook -i {inventory_path} {playbook_path}"
+            # Run Ansible playbook with optional verbose output
+            verbose_flag = "-vvv" if verbose else ""
+            cmd = f"ansible-playbook -i {inventory_path} {playbook_path} {verbose_flag}"
+            logger.info(f"Running command: {cmd}")
             stdout, stderr = self.execute_command(cmd)
             
+            if stdout:
+                logger.info(f"Ansible playbook output: {stdout}")
             if stderr:
-                logger.error(f"Ansible playbook failed: {stderr}")
+                logger.error(f"Ansible playbook error: {stderr}")
                 return False
                 
             logger.info("Server setup completed successfully")
@@ -144,9 +149,9 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             logger.error(f"Failed to execute command: {str(e)}")
             return "", str(e)
 
-    def setup(self, anthropic_api_key: str) -> bool:
+    def setup(self, anthropic_api_key: str, verbose: bool = False) -> bool:
         """Complete setup process"""
-        if not self.setup_server(anthropic_api_key):
+        if not self.setup_server(anthropic_api_key, verbose):
             return False
             
         logger.info("Setup completed successfully")
@@ -167,8 +172,9 @@ def main():
                        type=int,
                        default=1,
                        help='Optional num of agents(if not provided, will default to one)')
-    
-
+    parser.add_argument('--verbose',
+                       action='store_true',
+                       help='Enable verbose output for Ansible playbook')
 
     args = parser.parse_args()
     
@@ -180,10 +186,9 @@ def main():
         print("Error: Domain must be provided")
         sys.exit(1)
         
+    setup = IOASetup(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
     
-    setup = IOASetup(domain=args.domain, num_agents=args.num_agents,agent_id=args.agent_id)
-    
-    if not setup.setup(args.anthropic_key):
+    if not setup.setup(args.anthropic_key, verbose=args.verbose):
         print("Setup failed")
         sys.exit(1)
     print("Setup completed successfully")
