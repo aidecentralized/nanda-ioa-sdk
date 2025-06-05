@@ -1,0 +1,15 @@
+[Unit]
+Description=Internet of Agents Service
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/internet_of_agents/agents
+EnvironmentFile=/etc/internet_of_agents.env
+ExecStart=/opt/internet_of_agents/agents/start_running_agents.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target 

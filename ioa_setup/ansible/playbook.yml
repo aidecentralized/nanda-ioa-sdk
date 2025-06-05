@@ -1,0 +1,116 @@
+---
+- name: Setup Internet of Agents on Linode
+  hosts: linode_servers
+  become: yes
+  vars:
+    cert_path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+    key_path: "/etc/letsencrypt/live/{{ domain_name }}/privkey.pem"
+    venv_path: "/opt/internet_of_agents/venv"
+
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-venv
+          - git
+          - certbot
+          - python3-certbot-nginx
+        state: present
+        update_cache: yes
+
+    - name: Create certificates directory
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      with_items:
+        - /etc/letsencrypt/live
+        - /etc/letsencrypt/archive
+
+    - name: Stop Nginx to free port 80
+      service:
+        name: nginx
+        state: stopped
+
+    - name: Generate SSL certificates
+      command: "certbot certonly --standalone -d {{ domain_name }} --non-interactive --agree-tos --email admin@{{ domain_name }}"
+      register: certbot_result
+      changed_when: certbot_result.rc == 0
+      failed_when: certbot_result.rc != 0 and 'already exists' not in certbot_result.stderr
+
+    - name: Start Nginx after certificate generation
+      service:
+        name: nginx
+        state: started
+      when: certbot_result.rc == 0
+
+    - name: Clone internet_of_agents repository
+      git:
+        repo: "{{ github_repo }}"
+        dest: /opt/internet_of_agents
+        version: main
+        force: yes
+        clone: yes
+        update: yes
+        accept_hostkey: yes
+
+    - name: Create Python virtual environment
+      command: python3 -m venv {{ venv_path }}
+      args:
+        creates: "{{ venv_path }}"
+
+    - name: Install Python requirements in virtual environment
+      pip:
+        requirements: /opt/internet_of_agents/requirements.txt
+        state: present
+        virtualenv: "{{ venv_path }}"
+
+    - name: Create .bashrc directory if it doesn't exist
+      file:
+        path: /root/.bashrc
+        state: touch
+        mode: '0644'
+
+    - name: Add Anthropic API key to .bashrc
+      lineinfile:
+        path: /root/.bashrc
+        line: 'export ANTHROPIC_API_KEY="{{ anthropic_api_key }}"'
+        state: present
+
+    - name: Add virtual environment activation to .bashrc
+      lineinfile:
+        path: /root/.bashrc
+        line: 'source {{ venv_path }}/bin/activate'
+        state: present
+
+    - name: Make start_running_agents.sh executable
+      file:
+        path: /opt/internet_of_agents/agents/start_running_agents.sh
+        mode: '0755'
+
+    - name: Create environment file
+      copy:
+        dest: /etc/internet_of_agents.env
+        content: |
+          ANTHROPIC_API_KEY={{ anthropic_api_key }}
+          VIRTUAL_ENV={{ venv_path }}
+          AGENT_ID_PREFIX={{ agent_id_prefix }}
+          {% if num_agents is defined %}
+            NUM_AGENTS={{ num_agents }}
+          {% endif %}
+        mode: '0644'
+
+    - name: Create systemd service for internet_of_agents
+      template:
+        src: templates/internet_of_agents.service.j2
+        dest: /etc/systemd/system/internet_of_agents.service
+        mode: '0644'
+
+    - name: Start and enable internet_of_agents service
+      systemd:
+        name: internet_of_agents
+        state: started
+        enabled: yes
+        daemon_reload: yes 
