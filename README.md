@@ -4,6 +4,17 @@ A Python SDK for setting up Internet of Agents servers. This tool automates the 
 
 ## Installation
 
+Pre-requistie commands 
+
+ssh into the servers
+
+```bash
+sudo apt update 
+sudo apt install python3 python3-pip
+
+```
+
+
 ```bash
 pip install git+https://github.com/aidecentralized/nanda-ioa-sdk.git
 ```
