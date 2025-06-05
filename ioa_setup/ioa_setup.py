@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 class IOASetup:
     def __init__(self, 
                  domain: str,
-                 agent_id: Optional[int] = None,
-                 num_agents: int):
+                 num_agents: int,
+                 agent_id: Optional[int] = None):
         """
         Initialize IOA Setup SDK
         
@@ -181,7 +181,7 @@ def main():
         sys.exit(1)
         
     
-    setup = IOASetup(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
+    setup = IOASetup(domain=args.domain, num_agents=args.num_agents,agent_id=args.agent_id)
     
     if not setup.setup(args.anthropic_key):
         print("Setup failed")
