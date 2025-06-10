@@ -82,7 +82,7 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             f.write(inventory_content)
         return inventory_path
 
-    def setup_server(self, anthropic_api_key: str, verbose: bool = False) -> bool:
+    def setup_server(self, anthropic_api_key: str, smithery_api_key: str, verbose: bool = False) -> bool:
         """Set up the server using Ansible"""
         inventory_path = None
         group_vars_dir = None
@@ -99,6 +99,7 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             # Create group_vars/all.yml
             group_vars_content = {
                 'anthropic_api_key': anthropic_api_key,
+                'smithery_api_key': smithery_api_key,
                 'domain_name': self.domain,
                 'agent_id_prefix': self.agent_id,
                 'github_repo': 'https://github.com/aidecentralized/nanda-internet-of-agents.git',
@@ -154,9 +155,9 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             logger.error(f"Failed to execute command: {str(e)}")
             return "", str(e)
 
-    def setup(self, anthropic_api_key: str, verbose: bool = False) -> bool:
+    def setup(self, anthropic_api_key: str, smithery_api_key: str, verbose: bool = False) -> bool:
         """Complete setup process"""
-        if not self.setup_server(anthropic_api_key, verbose):
+        if not self.setup_server(anthropic_api_key, smithery_api_key, verbose):
             return False
             
         logger.info("Setup completed successfully")
@@ -167,6 +168,9 @@ def main():
     parser.add_argument('--anthropic-key', 
                        required=True,
                        help='Anthropic API key for the agent')
+    parser.add_argument('--smithery-key', 
+                       required=True,
+                       help='Smithery API key for the MCP connections')
     parser.add_argument('--domain',
                        required=True,
                        help='Complete domain name (e.g., myapp.example.com)')
@@ -187,13 +191,17 @@ def main():
         print("Error: Anthropic API key must be provided")
         sys.exit(1)
         
+    if not args.smithery_key:
+        print("Error: Smithery API key must be provided")
+        sys.exit(1)
+        
     if not args.domain:
         print("Error: Domain must be provided")
         sys.exit(1)
         
     setup = IOASetup(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
     
-    if not setup.setup(args.anthropic_key, verbose=args.verbose):
+    if not setup.setup(args.anthropic_key, args.smithery_key, verbose=args.verbose):
         print("Setup failed")
         sys.exit(1)
     print("Setup completed successfully")

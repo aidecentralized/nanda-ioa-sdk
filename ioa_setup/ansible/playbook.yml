@@ -99,6 +99,12 @@
         line: 'export ANTHROPIC_API_KEY="{{ anthropic_api_key }}"'
         state: present
 
+    - name: Add Smithery API key to .bashrc
+      lineinfile:
+        path: /root/.bashrc
+        line: 'export SMITHERY_API_KEY="{{ smithery_api_key }}"'
+        state: present
+
     - name: Add virtual environment activation to .bashrc
       lineinfile:
         path: /root/.bashrc
@@ -118,6 +124,7 @@
           VIRTUAL_ENV={{ venv_path }}
           AGENT_ID_PREFIX={{ agent_id_prefix }}
           DOMAIN_NAME={{ domain_name }}
+          SMITHERY_API_KEY={{ smithery_api_key }}
           {% if num_agents is defined %}
             NUM_AGENTS={{ num_agents }}
           {% endif %}
