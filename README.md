@@ -29,6 +29,7 @@ pip install git+https://github.com/aidecentralized/nanda-ioa-sdk.git
 ### 2. Run the Setup
 The setup requires two mandatory parameters:
 - `--anthropic-key`: Your Anthropic API key
+- `--smithery-key`: Your Smithery API key for connecting to MCP servers
 - `--domain`: Your complete domain name (e.g., myapp.example.com)
 
 Optional parameters:
@@ -38,13 +39,13 @@ Optional parameters:
 Example commands:
 ```bash
 # Basic setup with random agent ID
-ioa-setup --anthropic-key "your_anthropic_api_key" --domain "myapp.example.com"
+ioa-setup --anthropic-key "your_anthropic_api_key" --domain "myapp.example.com" --smithery-key "your_smithery_api_key"
 
 # Setup with specific agent ID
-ioa-setup --anthropic-key "your_anthropic_api_key" --domain "myapp.example.com" --agent-id 123456
+ioa-setup --anthropic-key "your_anthropic_api_key" --domain "myapp.example.com" --smithery-key "your_smithery_api_key" --agent-id 123456
 
 # Setup with multiple agents
-ioa-setup --anthropic-key "your_anthropic_api_key" --domain "myapp.example.com" --num-agents 3
+ioa-setup --anthropic-key "your_anthropic_api_key" --domain "myapp.example.com" --smithery-key "your_smithery_api_key" --num-agents 3
 ```
 
 ### 3. Verify Installation
