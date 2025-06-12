@@ -125,8 +125,11 @@
           AGENT_ID_PREFIX={{ agent_id_prefix }}
           DOMAIN_NAME={{ domain_name }}
           SMITHERY_API_KEY={{ smithery_api_key }}
+          {% if user_email is defined %}
+          USER_EMAIL={{ user_email }}
+          {% endif %}
           {% if num_agents is defined %}
-            NUM_AGENTS={{ num_agents }}
+          NUM_AGENTS={{ num_agents }}
           {% endif %}
         mode: '0644'
 

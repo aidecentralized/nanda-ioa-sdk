@@ -84,7 +84,7 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             f.write(inventory_content)
         return inventory_path
 
-    def setup_server(self, anthropic_api_key: str, smithery_api_key: str, verbose: bool = False) -> bool:
+    def setup_server(self, anthropic_api_key: str, smithery_api_key: str, email_id: str = None, verbose: bool = False) -> bool:
         """Set up the server using Ansible"""
         inventory_path = None
         group_vars_dir = None
@@ -107,6 +107,10 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
                 'github_repo': 'https://github.com/aidecentralized/nanda-internet-of-agents.git',
                 'num_agents' : self.num_agents
             }
+            
+            # Only add user_email if email_id is provided
+            if email_id:
+                group_vars_content['user_email'] = email_id
             
             with open(f"{group_vars_dir}/all.yml", "w") as f:
                 yaml.dump(group_vars_content, f)
@@ -157,9 +161,9 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
             logger.error(f"Failed to execute command: {str(e)}")
             return "", str(e)
 
-    def setup(self, anthropic_api_key: str, smithery_api_key: str, verbose: bool = False) -> bool:
+    def setup(self, anthropic_api_key: str, smithery_api_key: str, email_id: str = None, verbose: bool = False) -> bool:
         """Complete setup process"""
-        if not self.setup_server(anthropic_api_key, smithery_api_key, verbose):
+        if not self.setup_server(anthropic_api_key, smithery_api_key, email_id, verbose):
             return False
             
         logger.info("Setup completed successfully")
@@ -182,18 +186,25 @@ def main():
                        type=int,
                        default=1,
                        help='Optional num of agents(if not provided, will default to one)')
+    parser.add_argument('--email-id',
+                       help='Email ID for sending login links for self hosted emails')
     parser.add_argument('--verbose',
                        action='store_true',
                        help='Enable verbose output for Ansible playbook')
 
     args = parser.parse_args()
-    
+
     if not args.anthropic_key:
         print("Error: Anthropic API key must be provided")
         sys.exit(1)
         
     if not args.domain:
         print("Error: Domain must be provided")
+        sys.exit(1)
+
+    # Skip email requirement for nanda-registry.com domains
+    if "nanda-registry.com" not in args.domain and not args.email_id:
+        print("Error: Email ID for sending agent details must be provided")
         sys.exit(1)
 
     if args.smithery_key:
@@ -204,7 +215,7 @@ def main():
         
     setup = IOASetup(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
     
-    if not setup.setup(args.anthropic_key, smithery_key , verbose=args.verbose):
+    if not setup.setup(args.anthropic_key, smithery_key, args.email_id, verbose=args.verbose):
         print("Setup failed")
         sys.exit(1)
     print("Setup completed successfully")
