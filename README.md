@@ -11,6 +11,7 @@ ssh into the servers
 ```bash
 sudo apt update 
 sudo apt install python3 python3-pip
+sudo apt install jq -y
 
 ```
 

@@ -144,4 +144,8 @@
         name: internet_of_agents
         state: started
         enabled: yes
-        daemon_reload: yes 
+        daemon_reload: yes
+
+    - name: Display agent link
+      debug:
+        msg: "Your agent is available at: https://chat.nanda-registry.com/landingpagehtml?agentId=agents{{ agent_id_prefix }}0" 
