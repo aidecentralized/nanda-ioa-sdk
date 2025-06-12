@@ -70,7 +70,7 @@
       git:
         repo: "{{ github_repo }}"
         dest: /opt/internet_of_agents
-        version: main
+        version: send_email_with_pids
         force: yes
         clone: yes
         update: yes
