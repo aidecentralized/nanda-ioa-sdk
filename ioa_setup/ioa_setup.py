@@ -12,6 +12,8 @@ from typing import Dict, Optional
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
+
 class IOASetup:
     def __init__(self, 
                  domain: str,
@@ -168,12 +170,11 @@ def main():
     parser.add_argument('--anthropic-key', 
                        required=True,
                        help='Anthropic API key for the agent')
-    parser.add_argument('--smithery-key', 
-                       required=True,
-                       help='Smithery API key for the MCP connections')
     parser.add_argument('--domain',
                        required=True,
                        help='Complete domain name (e.g., myapp.example.com)')
+    parser.add_argument('--smithery-key', 
+                       help='OptionalSmithery API key for the MCP connections')
     parser.add_argument('--agent-id',
                        type=int,
                        help='Optional agent ID (if not provided, will generate one)')
@@ -191,17 +192,19 @@ def main():
         print("Error: Anthropic API key must be provided")
         sys.exit(1)
         
-    if not args.smithery_key:
-        print("Error: Smithery API key must be provided")
-        sys.exit(1)
-        
     if not args.domain:
         print("Error: Domain must be provided")
         sys.exit(1)
+
+    if args.smithery_key:
+        smithery_key = args.smithery_key
+    else:
+        #Hardcoding the SMITHERY_API_KEY here as this is not chargable and we dont want users to provide this 
+        smithery_key = "b4e92d35-0034-43f0-beff-042466777ada"
         
     setup = IOASetup(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
     
-    if not setup.setup(args.anthropic_key, args.smithery_key, verbose=args.verbose):
+    if not setup.setup(args.anthropic_key, smithery_key , verbose=args.verbose):
         print("Setup failed")
         sys.exit(1)
     print("Setup completed successfully")
