@@ -148,4 +148,8 @@
 
     - name: Display agent link
       debug:
-        msg: "Your agent is available at: https://chat.nanda-registry.com/landingpagehtml?agentId=agents{{ agent_id_prefix }}0" 
+        msg: |
+          ===================================================
+          Your agent is available at: https://chat.nanda-registry.com/landingpagehtml?agentId=agents{{ agent_id_prefix }}0
+          ===================================================
+      no_log: false 
