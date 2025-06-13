@@ -153,7 +153,7 @@
              Agent {{ i + 1 }}:||||      https://chat.nanda-registry.com/landing.html?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}{{ i }}      ||||
           {% endfor %}
           {% else %}
-          |||| https://chat.nanda-registry.com/landing.html?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}0
+          ||||   https://chat.nanda-registry.com/landing.html?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}0    ||||
           {% endif %}
           ===================================================
       no_log: false 
