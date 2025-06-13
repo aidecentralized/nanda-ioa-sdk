@@ -13,9 +13,12 @@ sudo apt update  && sudo apt install python3 python3-pip
 
 ```
 
-
 ```bash
 pip install git+https://github.com/aidecentralized/nanda-ioa-sdk.git
+```
+
+```bash
+ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
 ```
 
 ## Quick Setup Guide
