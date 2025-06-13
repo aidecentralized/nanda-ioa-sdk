@@ -153,9 +153,11 @@
           Your agent is now ready!
 
           Access your agent{% if num_agents is defined and num_agents > 1 %}s{% endif %} at:
+          
           {% if num_agents is defined and num_agents > 1 %}
           {% for i in range(num_agents) %}
           Agent {{ i + 1 }}:|||| https://chat.nanda-registry.com/landingpagehtml?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}{{ i }} ||||
+          
           {% endfor %}
           {% else %}
           |||| https://chat.nanda-registry.com/landingpagehtml?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}0
