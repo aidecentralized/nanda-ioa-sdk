@@ -187,7 +187,7 @@ def main():
                        help='Enable verbose output for Ansible playbook')
 
     args = parser.parse_args()
-    
+
     if not args.anthropic_key:
         print("Error: Anthropic API key must be provided")
         sys.exit(1)
@@ -204,7 +204,7 @@ def main():
         
     setup = IOASetup(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
     
-    if not setup.setup(args.anthropic_key, smithery_key , verbose=args.verbose):
+    if not setup.setup(args.anthropic_key, smithery_key, verbose=args.verbose):
         print("Setup failed")
         sys.exit(1)
     print("Setup completed successfully")
