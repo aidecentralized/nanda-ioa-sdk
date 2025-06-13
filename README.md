@@ -39,7 +39,7 @@ Optional parameters:
 Example commands:
 ```bash
 # Basic setup with random agent ID
-ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> "
+ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
 
 # Setup with specific agent ID
 ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --agent-id 123456
