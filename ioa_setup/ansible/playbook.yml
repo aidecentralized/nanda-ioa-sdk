@@ -146,24 +146,24 @@
         enabled: yes
         daemon_reload: yes
 
-- name: Set agent display message
-  set_fact:
-    agent_links_message: |
-      ===================================================
-      Your agent is now ready!
+    - name: Set agent display message
+      set_fact:
+        agent_links_message: |
+          ===================================================
+          Your agent is now ready!
 
-      Access your agent{% if num_agents is defined and num_agents > 1 %}s{% endif %} at:
-      
-      {% if num_agents is defined and num_agents > 1 %}
-      {% for i in range(num_agents) %}
-      Agent {{ i + 1 }}: |||| https://chat.nanda-registry.com/landingpagehtml?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}{{ i }} ||||
+          Access your agent{% if num_agents is defined and num_agents > 1 %}s{% endif %} at:
+          
+          {% if num_agents is defined and num_agents > 1 %}
+          {% for i in range(num_agents) %}
+          Agent {{ i + 1 }}: |||| https://chat.nanda-registry.com/landingpagehtml?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}{{ i }} ||||
 
-      {% endfor %}
-      {% else %}
-      |||| https://chat.nanda-registry.com/landingpagehtml?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}0
-      {% endif %}
-      ===================================================
+          {% endfor %}
+          {% else %}
+          |||| https://chat.nanda-registry.com/landingpagehtml?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}0
+          {% endif %}
+          ===================================================
 
-- name: Display agent link (formatted output)
-  debug:
-    var: agent_links_message
+    - name: Display agent link (formatted output)
+      debug:
+        var: agent_links_message
