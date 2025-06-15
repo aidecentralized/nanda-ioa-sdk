@@ -14,7 +14,7 @@ logger = logging.getLogger('nanda_sdk')
 
 
 
-class IOASetup:
+class NandaSdk:
     def __init__(self, 
                  domain: str,
                  num_agents: int,
@@ -202,7 +202,7 @@ def main():
         #Hardcoding the SMITHERY_API_KEY here as this is not chargable and we dont want users to provide this 
         smithery_key = "b4e92d35-0034-43f0-beff-042466777ada"
         
-    setup = IOASetup(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
+    setup = NandaSdk(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
     
     if not setup.setup(args.anthropic_key, smithery_key, verbose=args.verbose):
         print("Setup failed")

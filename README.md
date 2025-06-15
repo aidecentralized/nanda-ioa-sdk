@@ -1,4 +1,4 @@
-# IOA Setup SDK
+# NANDA SDK
 
 A Python SDK for setting up Internet of Agents servers. This tool automates the process of configuring servers with DNS records, SSL certificates, and required software.
 
@@ -14,18 +14,18 @@ sudo apt update  && sudo apt install python3 python3-pip
 ```
 
 ```bash
-pip install git+https://github.com/aidecentralized/nanda-ioa-sdk.git
+pip install git+https://github.com/aidecentralized/nanda-sdk.git
 ```
 
 ```bash
-ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
+nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
 ```
 
 ## Quick Setup Guide
 
 ### 1. Install the SDK
 ```bash
-pip install git+https://github.com/aidecentralized/nanda-ioa-sdk.git
+pip install git+https://github.com/aidecentralized/nanda-sdk.git
 ```
 
 ### 2. Run the Setup
@@ -41,16 +41,16 @@ Optional parameters:
 Example commands:
 ```bash
 # Basic setup with random agent ID
-ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
+nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
 
 # Setup with specific agent ID
-ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --agent-id 123456
+nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --agent-id 123456
 
 # Setup with multiple agents
-ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --num-agents 3
+nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --num-agents 3
 
 # Setup with your own smithery key
-ioa-setup --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --smithery-key <your_smithery_api_key>
+nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --smithery-key <your_smithery_api_key>
 ```
 
 ### 3. Verify Installation

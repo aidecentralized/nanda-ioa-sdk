@@ -20,7 +20,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'nanda-sdk=nanda_sdk.ioa_setup:main',
+            'nanda-sdk=nanda_sdk.nanda_sdk:main',
         ],
     },
     author="NANDA",
