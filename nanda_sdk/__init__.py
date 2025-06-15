@@ -1,4 +1,4 @@
-from .ioa_setup import IOASetup, main
+from .nanda_sdk import NandaSdk, main
 
-__version__ = "0.1.0"
-__all__ = ["IOASetup", "main"] 
+__version__ = "0.1.2"
+__all__ = ["NandaSdk", "main"] 
