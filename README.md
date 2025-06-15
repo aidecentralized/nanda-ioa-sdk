@@ -25,7 +25,7 @@ nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com>
 
 ### 1. Install the SDK
 ```bash
-pip install git+https://github.com/aidecentralized/nanda-sdk.git
+pip install nanda-sdk
 ```
 
 ### 2. Run the Setup
