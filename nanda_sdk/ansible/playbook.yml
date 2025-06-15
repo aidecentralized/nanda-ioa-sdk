@@ -1,6 +1,6 @@
 ---
-- name: Setup Internet of Agents on Linode
-  hosts: linode_servers
+- name: Setup Internet of Agents 
+  hosts: servers
   become: yes
   vars:
     cert_path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
