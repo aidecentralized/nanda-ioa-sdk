@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="ioa_setup",
+    name="nanda_sdk",
     version="0.1.0",
     packages=find_packages(),
     package_data={
-        'ioa_setup': [
+        'nanda_sdk': [
             'ansible/*.yml',
             'ansible/templates/*.j2',
             'ansible/group_vars/*.yml'
@@ -20,15 +20,15 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'ioa-setup=ioa_setup.ioa_setup:main',
+            'nanda-sdk=nanda_sdk.ioa_setup:main',
         ],
     },
-    author="Cosmaya",
+    author="NANDA",
     author_email="admin@nanda-registry.com",
     description="SDK for setting up Internet of Agents servers",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
-    url="https://github.com/Cosmaya/internet_of_agents",
+    url="https://github.com/aidecentralized/nanda-sdk",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

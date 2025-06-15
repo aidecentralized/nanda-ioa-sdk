@@ -10,7 +10,7 @@ import argparse
 from typing import Dict, Optional
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('nanda_sdk')
 
 
 
