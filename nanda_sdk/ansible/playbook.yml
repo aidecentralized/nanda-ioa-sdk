@@ -7,12 +7,13 @@
     key_path: "/etc/letsencrypt/live/{{ domain_name }}/privkey.pem"
     venv_path: "/opt/internet_of_agents/venv"
 
-  tasks:
+  pre_tasks:
     - name: Check OS family
       set_fact:
         is_debian: ansible_os_family == "Debian"
         is_redhat: ansible_os_family == "RedHat"
 
+  tasks:
     - name: Install required packages (Debian/Ubuntu)
       apt:
         name:
