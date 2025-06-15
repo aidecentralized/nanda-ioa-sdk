@@ -77,7 +77,7 @@ ansible_connection=local
 ansible_python_interpreter=/usr/bin/python3
 domain_name={self.domain}
 agent_id_prefix={self.agent_id}
-github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
+github_repo=https://github.com/aidecentralized/nanda-agent.git
 """
         inventory_path = "/tmp/ioa_inventory.ini"
         with open(inventory_path, "w") as f:
@@ -104,7 +104,7 @@ github_repo=https://github.com/aidecentralized/nanda-internet-of-agents.git
                 'smithery_api_key': smithery_api_key,
                 'domain_name': self.domain,
                 'agent_id_prefix': self.agent_id,
-                'github_repo': 'https://github.com/aidecentralized/nanda-internet-of-agents.git',
+                'github_repo': 'https://github.com/aidecentralized/nanda-agent.git',
                 'num_agents' : self.num_agents
             }
             
