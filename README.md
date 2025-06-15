@@ -14,7 +14,7 @@ sudo apt update  && sudo apt install python3 python3-pip
 ```
 
 ```bash
-pip install git+https://github.com/aidecentralized/nanda-sdk.git
+pip install nanda-sdk
 ```
 
 ```bash
