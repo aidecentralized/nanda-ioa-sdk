@@ -1,6 +1,6 @@
 ---
-- name: Setup Internet of Agents on Linode
-  hosts: linode_servers
+- name: Setup Internet of Agents
+  hosts: servers
   become: yes
   vars:
     cert_path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
@@ -8,7 +8,12 @@
     venv_path: "/opt/internet_of_agents/venv"
 
   tasks:
-    - name: Install required packages
+    - name: Check OS family
+      set_fact:
+        is_debian: ansible_os_family == "Debian"
+        is_redhat: ansible_os_family == "RedHat"
+
+    - name: Install required packages (Debian/Ubuntu)
       apt:
         name:
           - python3
@@ -19,26 +24,55 @@
           - snapd
         state: present
         update_cache: yes
+      when: is_debian
+
+    - name: Install required packages (RHEL/CentOS)
+      yum:
+        name:
+          - python3
+          - python3-pip
+          - git
+          - nginx
+          - epel-release
+        state: present
+      when: is_redhat
+
+    - name: Install snapd (Debian/Ubuntu)
+      apt:
+        name: snapd
+        state: present
+        update_cache: yes
+      when: is_debian
 
     - name: Install core snap
       command: snap install core
       args:
         creates: /snap/bin/core
+      when: is_debian
 
     - name: Refresh core snap
       command: snap refresh core
+      when: is_debian
 
-    - name: Install certbot via snap
+    - name: Install certbot via snap (Debian/Ubuntu)
       command: snap install --classic certbot
       args:
         creates: /snap/bin/certbot
+      when: is_debian
 
-    - name: Create symlink for certbot
+    - name: Install certbot via yum (RHEL/CentOS)
+      yum:
+        name: certbot
+        state: present
+      when: is_redhat
+
+    - name: Create symlink for certbot (Debian/Ubuntu)
       file:
         src: /snap/bin/certbot
         dest: /usr/bin/certbot
         state: link
         force: yes
+      when: is_debian
 
     - name: Create certificates directory
       file:

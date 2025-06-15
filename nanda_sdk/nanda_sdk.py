@@ -68,7 +68,7 @@ class NandaSdk:
         # Get server's public IP
         server_ip = self.get_public_ip()
         
-        inventory_content = f"""[linode_servers]
+        inventory_content = f"""[servers]
 server ansible_host={server_ip}
 
 [all:vars]
