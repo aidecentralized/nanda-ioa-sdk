@@ -18,20 +18,25 @@ class NandaSdk:
     def __init__(self, 
                  domain: str,
                  num_agents: int,
+                 registry_url: str = "https://chat.nanda-registry.com",
                  agent_id: Optional[int] = None):
         """
-        Initialize IOA Setup SDK
+        Initialize NANDA SDK
         
         Args:
             domain: Complete domain name provided by user (e.g., 'myapp.example.com')
+            num_agents: Number of agents to set up
+            registry_url: URL of the NANDA registry (default: https://chat.nanda-registry.com)
             agent_id: Agent ID number (if None, a random 6-digit number will be generated)
         """
         self.domain = domain
         self.agent_id = agent_id if agent_id is not None else self._generate_agent_id()
         self.num_agents = num_agents
+        self.registry_url = registry_url
         logger.info(f"Using agent ID: {self.agent_id}")
         logger.info(f"Using domain: {self.domain}")
         logger.info(f"Using num_agents: {self.num_agents}")
+        logger.info(f"Using registry URL: {self.registry_url}")
 
     def _generate_agent_id(self) -> int:
         """Generate a random 6-digit agent ID"""
@@ -78,6 +83,7 @@ ansible_python_interpreter=/usr/bin/python3
 domain_name={self.domain}
 agent_id_prefix={self.agent_id}
 github_repo=https://github.com/aidecentralized/nanda-agent.git
+registry_url={self.registry_url}
 """
         inventory_path = "/tmp/ioa_inventory.ini"
         with open(inventory_path, "w") as f:
@@ -105,7 +111,8 @@ github_repo=https://github.com/aidecentralized/nanda-agent.git
                 'domain_name': self.domain,
                 'agent_id_prefix': self.agent_id,
                 'github_repo': 'https://github.com/aidecentralized/nanda-agent.git',
-                'num_agents' : self.num_agents
+                'num_agents': self.num_agents,
+                'registry_url': self.registry_url
             }
             
             with open(f"{group_vars_dir}/all.yml", "w") as f:
@@ -185,6 +192,9 @@ def main():
     parser.add_argument('--verbose',
                        action='store_true',
                        help='Enable verbose output for Ansible playbook')
+    parser.add_argument('--registry-url',
+                       default="https://chat.nanda-registry.com",
+                       help='URL of the NANDA registry (default: https://chat.nanda-registry.com)')
 
     args = parser.parse_args()
 
@@ -202,7 +212,12 @@ def main():
         #Hardcoding the SMITHERY_API_KEY here as this is not chargable and we dont want users to provide this 
         smithery_key = "b4e92d35-0034-43f0-beff-042466777ada"
         
-    setup = NandaSdk(domain=args.domain, agent_id=args.agent_id, num_agents=args.num_agents)
+    setup = NandaSdk(
+        domain=args.domain, 
+        agent_id=args.agent_id, 
+        num_agents=args.num_agents,
+        registry_url=args.registry_url
+    )
     
     if not setup.setup(args.anthropic_key, smithery_key, verbose=args.verbose):
         print("Setup failed")
