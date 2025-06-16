@@ -37,7 +37,8 @@ Optional parameters:
 - `--smithery-key`: Your Smithery API key for connecting to MCP servers. A default key will be provided by application for connectivitiy
 - `--agent-id`: A specific agent ID (if not provided, a random 6-digit number will be generated)
 - `--num-agents`: Number of agents to set up (defaults to 1 if not specified)
-
+- `--registry-url`: If the registry url needs to be changed. Default to https://chat.nanda-registry.com. We just need to pass 
+the domain. Expected port for registry to run in 6900
 Example commands:
 ```bash
 # Basic setup with random agent ID
@@ -51,6 +52,9 @@ nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
 
 # Setup with your own smithery key
 nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --smithery-key <your_smithery_api_key>
+
+# Setup with your own registry
+nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --registry-url <https://your-domain.com>
 ```
 
 ### 3. Verify Installation
