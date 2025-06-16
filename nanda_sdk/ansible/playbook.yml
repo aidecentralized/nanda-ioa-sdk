@@ -70,7 +70,7 @@
       git:
         repo: "{{ github_repo }}"
         dest: /opt/internet_of_agents
-        version: main
+        version: accept_registry_url
         force: yes
         clone: yes
         update: yes
@@ -125,6 +125,7 @@
           AGENT_ID_PREFIX={{ agent_id_prefix }}
           DOMAIN_NAME={{ domain_name }}
           SMITHERY_API_KEY={{ smithery_api_key }}
+          REGISTRY_URL={{ registry_url }}
           {% if num_agents is defined %}
           NUM_AGENTS={{ num_agents }}
           {% endif %}
