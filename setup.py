@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="nanda_sdk",
-    version="0.1.3",
+    version="0.1.4",
     packages=find_packages(),
     package_data={
         'nanda_sdk': [
