@@ -106,7 +106,7 @@ systemctl status internet_of_agents
 journalctl -u internet_of_agents -f
 ```
 
-3. For Route53 DNS issues, contact the IOA support team.
+3. For Route53 DNS issues, contact the NANDA support team.
 
 ## Requirements
 
@@ -116,7 +116,7 @@ journalctl -u internet_of_agents -f
 
 ## Support
 
-If you encounter any issues with Route53 DNS setup, please contact the IOA support team.
+If you encounter any issues with Route53 DNS setup, please contact the NANDA support team.
 
 ## License
 
