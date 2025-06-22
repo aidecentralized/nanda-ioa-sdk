@@ -157,7 +157,7 @@
           #!/bin/bash
           source {{ home_dir }}/.config/internet_of_agents.env
           cd {{ app_dir }}/agents
-          {{ venv_path }}/bin/python {{ app_dir }}/agents/start_running_agents.sh
+          {{ app_dir }}/agents/start_running_agents.sh
         mode: '0755'
 
     - name: Display agent information
