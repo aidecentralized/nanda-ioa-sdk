@@ -20,18 +20,55 @@ sudo apt update && sudo apt install python3-venv git
 
 ## Installation
 
-Pre-requisite commands (run as regular user):
-
+### Quick One-Line Installation (Recommended):
 ```bash
-# Install pipx if you don't have it
+# This handles everything including PATH setup
+python3 -m pip install --user pipx && pipx ensurepath && exec $SHELL && pipx install nanda-sdk
+```
+
+### Step-by-Step Installation:
+```bash
+# 1. Install pipx if you don't have it
 python3 -m pip install --user pipx
+
+# 2. Add pipx to PATH (IMPORTANT!)
 pipx ensurepath
 
-# Restart terminal or reload shell
-source ~/.bashrc  # or ~/.zshrc
+# 3. Reload your shell to pick up PATH changes
+exec $SHELL
+# OR restart your terminal
+# OR manually run: source ~/.bashrc
 
-# Install nanda-sdk
+# 4. Install nanda-sdk
 pipx install nanda-sdk
+
+# 5. Verify it works
+nanda-sdk --help
+```
+
+### Alternative: Automated Installation Script
+```bash
+# Download and run our smart installer (handles PATH automatically)
+curl -sSL https://raw.githubusercontent.com/aidecentralized/nanda-sdk/main/install.sh | bash
+```
+
+### If You Still Get "Command Not Found":
+```bash
+# Use our built-in diagnostic tool
+nanda-sdk --check-install
+
+# Check if ansible is detected correctly
+nanda-sdk --check-ansible
+
+# Or check manually where pipx installed it
+pipx list
+
+# Add to PATH manually
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+
+# Try again
+nanda-sdk --help
 ```
 
 ## Quick Setup Guide
