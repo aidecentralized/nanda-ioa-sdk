@@ -7,8 +7,6 @@
     app_dir: "{{ home_dir }}/internet_of_agents"
     venv_path: "{{ app_dir }}/venv"
     cert_dir: "{{ home_dir }}/.local/ssl"
-    service_port: 8080
-    ssl_port: 8443
 
   tasks:
     - name: Check if required Python packages are available
@@ -67,33 +65,37 @@
         state: present
         virtualenv: "{{ venv_path }}"
 
-    - name: Create self-signed SSL certificate for development
-      block:
-        - name: Generate private key
-          openssl_privatekey:
-            path: "{{ cert_dir }}/privkey.pem"
-            size: 2048
-          
-        - name: Generate certificate signing request
-          openssl_csr:
-            path: "{{ cert_dir }}/cert.csr"
-            privatekey_path: "{{ cert_dir }}/privkey.pem"
-            common_name: "{{ domain_name }}"
-            
-        - name: Generate self-signed certificate
-          openssl_certificate:
-            path: "{{ cert_dir }}/fullchain.pem"
-            privatekey_path: "{{ cert_dir }}/privkey.pem"
-            csr_path: "{{ cert_dir }}/cert.csr"
-            provider: selfsigned
-      rescue:
-        - name: Create simple self-signed cert using openssl command
-          shell: |
-            openssl req -x509 -newkey rsa:2048 -keyout "{{ cert_dir }}/privkey.pem" \
-            -out "{{ cert_dir }}/fullchain.pem" -days 365 -nodes \
-            -subj "/C=US/ST=State/L=City/O=Organization/CN={{ domain_name }}"
-          args:
-            creates: "{{ cert_dir }}/fullchain.pem"
+    - name: Install certbot in virtual environment
+      pip:
+        name: certbot
+        state: present
+        virtualenv: "{{ venv_path }}"
+
+    - name: Create certificates directory
+      file:
+        path: "{{ cert_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Generate Let's Encrypt certificates using standalone mode
+      shell: |
+        {{ venv_path }}/bin/certbot certonly \
+          --standalone \
+          --non-interactive \
+          --agree-tos \
+          --email admin@{{ domain_name }} \
+          --domains {{ domain_name }} \
+          --http-01-port 8080 \
+          --config-dir {{ cert_dir }}/config \
+          --work-dir {{ cert_dir }}/work \
+          --logs-dir {{ cert_dir }}/logs
+      register: certbot_result
+      failed_when: certbot_result.rc != 0 and 'already exists' not in certbot_result.stderr
+
+    - name: Set certificate paths for Let's Encrypt
+      set_fact:
+        cert_path: "{{ cert_dir }}/config/live/{{ domain_name }}/fullchain.pem"
+        key_path: "{{ cert_dir }}/config/live/{{ domain_name }}/privkey.pem"
 
     - name: Update .bashrc with environment variables
       lineinfile:
@@ -134,10 +136,8 @@
           DOMAIN_NAME={{ domain_name }}
           SMITHERY_API_KEY={{ smithery_api_key }}
           REGISTRY_URL={{ registry_url }}
-          SERVICE_PORT={{ service_port }}
-          SSL_PORT={{ ssl_port }}
-          CERT_PATH={{ cert_dir }}/fullchain.pem
-          KEY_PATH={{ cert_dir }}/privkey.pem
+          CERT_PATH={{ cert_path }}
+          KEY_PATH={{ key_path }}
           {% if num_agents is defined %}
           NUM_AGENTS={{ num_agents }}
           {% endif %}
@@ -178,17 +178,17 @@
           ===================================================
           🎉 Your agent is now ready! 
           
-          📍 Running on non-privileged ports:
-          - HTTP: http://{{ domain_name }}:{{ service_port }}
-          - HTTPS: https://{{ domain_name }}:{{ ssl_port }} (self-signed cert)
+          📍 Running with Let's Encrypt SSL certificates:
+          - Domain: https://{{ domain_name }}
+          - Certificate: {{ cert_path }}
           
           🌐 Access your agent{% if num_agents is defined and num_agents > 1 %}s{% endif %} at:
           {% if num_agents is defined and num_agents > 1 %}
           {% for i in range(num_agents) %}
-             Agent {{ i + 1 }}: https://chat.nanda-registry.com/landing.html?agentId=agents{{ agent_id_prefix }}{{ i }}&port={{ ssl_port }}
+             Agent {{ i + 1 }}: https://chat.nanda-registry.com/landing.html?agentId=agents{{ agent_id_prefix }}{{ i }}
           {% endfor %}
           {% else %}
-          https://chat.nanda-registry.com/landing.html?agentId=agents{{ agent_id_prefix }}0&port={{ ssl_port }}
+          https://chat.nanda-registry.com/landing.html?agentId=agents{{ agent_id_prefix }}0
           {% endif %}
           
           🔧 Management commands:
@@ -198,6 +198,6 @@
           - Logs: journalctl --user -u internet_of_agents -f
           
           📁 Files located in: {{ app_dir }}
-          🔐 SSL certs in: {{ cert_dir }}
+          🔐 Let's Encrypt certs in: {{ cert_dir }}/config/live/{{ domain_name }}/
           ===================================================
       no_log: false 
