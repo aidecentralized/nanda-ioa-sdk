@@ -1,122 +1,181 @@
 # NANDA SDK
 
-A Python SDK for setting up Internet of Agents servers. This tool automates the process of configuring servers with DNS records, SSL certificates, and required software.
+A Python SDK for setting up Internet of Agents servers. This tool automates the process of configuring user-space agent services with SSL certificates and required software.
+
+## Prerequisites
+
+### Server Requirements:
+- Linux server (Ubuntu/Debian recommended)  
+- Python 3.6 or higher with venv support
+- Git (for cloning repositories)
+- Internet connectivity
+
+### Optional System Dependencies:
+If you don't have `python3-venv` or `git`, install them once:
+```bash
+sudo apt update && sudo apt install python3-venv git
+```
+
+**Note**: NANDA SDK now runs in **user-space** without requiring root privileges for operation!
 
 ## Installation
 
-Pre-requistie commands 
-
-ssh into the servers
+Pre-requisite commands (run as regular user):
 
 ```bash
-sudo apt update  && sudo apt install python3 python3-pip
+# Install pipx if you don't have it
+python3 -m pip install --user pipx
+pipx ensurepath
 
-```
+# Restart terminal or reload shell
+source ~/.bashrc  # or ~/.zshrc
 
-```bash
-pip install nanda-sdk
-```
-
-```bash
-nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
+# Install nanda-sdk
+pipx install nanda-sdk
 ```
 
 ## Quick Setup Guide
 
-### 1. Install the SDK
+### 1. Basic Setup
 ```bash
-pip install nanda-sdk
+nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
 ```
 
-### 2. Run the Setup
+### 2. Advanced Setup Options
 The setup requires two mandatory parameters:
 - `--anthropic-key`: Your Anthropic API key
 - `--domain`: Your complete domain name (e.g., myapp.example.com)
 
 Optional parameters:
-- `--smithery-key`: Your Smithery API key for connecting to MCP servers. A default key will be provided by application for connectivitiy
+- `--smithery-key`: Your Smithery API key for connecting to MCP servers
 - `--agent-id`: A specific agent ID (if not provided, a random 6-digit number will be generated)
 - `--num-agents`: Number of agents to set up (defaults to 1 if not specified)
-- `--registry-url`: If the registry url needs to be changed. Default to https://chat.nanda-registry.com. We just need to pass 
-the domain. Expected port for registry to run in 6900
+- `--registry-url`: Custom registry URL (defaults to https://chat.nanda-registry.com)
+
 Example commands:
 ```bash
 # Basic setup with random agent ID
 nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> 
 
-# Setup with specific agent ID
-nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --agent-id 123456
+# Setup with specific agent ID and multiple agents
+nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --agent-id 123456 --num-agents 3
 
-# Setup with multiple agents
-nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --num-agents 3
-
-# Setup with your own smithery key
+# Setup with custom smithery key
 nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --smithery-key <your_smithery_api_key>
-
-# Setup with your own registry
-nanda-sdk --anthropic-key <your_anthropic_api_key> --domain <myapp.example.com> --registry-url <https://your-domain.com>
 ```
 
 ### 3. Verify Installation
 After setup completes, verify your agent is running:
 
 ```bash
-# Check service status
-systemctl status internet_of_agents
+# Check user service status
+systemctl --user status internet_of_agents
 
 # View logs
-journalctl -u internet_of_agents -f
+journalctl --user -u internet_of_agents -f
 
-# list of servers 
-ps aux | grep run_ui_agent_https
+# List running processes 
+ps aux | grep python | grep agents
 ```
 
 Your agent will be:
-- Running as a systemd service
-- Accessible at your specified domain
-- Automatically starting on server reboot
+- Running as a user systemd service
+- Accessible on ports 8080 (HTTP) and 8443 (HTTPS) 
+- Using self-signed SSL certificates
+- Located in `~/internet_of_agents/`
 
 ## What the Setup Does
 
 The SDK automatically:
 1. Generates a random 6-digit agent ID (if not specified)
-2. Gets your server's public IP
-3. Creates a DNS record (e.g., chat123456.nanda-registry.com)
-4. Installs required packages:
-   - Python and pip
-   - Git
-   - Certbot for SSL
-   - Nginx
-5. Sets up SSL certificates
-6. Clones the repository
-7. Sets up Python virtual environment
-8. Configures the systemd service
+2. Creates user directories in your home folder:
+   - `~/internet_of_agents/` - Main application
+   - `~/.local/ssl/` - SSL certificates  
+   - `~/.config/systemd/user/` - User service
+3. Clones the agent repository
+4. Sets up Python virtual environment
+5. Generates self-signed SSL certificates
+6. Configures user-level systemd service
+7. Runs on non-privileged ports (8080/8443)
+
+## Service Management
+
+All commands run as your regular user (no sudo needed):
+
+```bash
+# Start the service
+systemctl --user start internet_of_agents
+
+# Stop the service  
+systemctl --user stop internet_of_agents
+
+# Restart the service
+systemctl --user restart internet_of_agents
+
+# Check status
+systemctl --user status internet_of_agents
+
+# View logs
+journalctl --user -u internet_of_agents -f
+
+# Enable/disable auto-start
+systemctl --user enable internet_of_agents
+systemctl --user disable internet_of_agents
+```
+
+## Port Information
+
+Your agents will run on:
+- **HTTP**: Port 8080 (http://yourdomain.com:8080)
+- **HTTPS**: Port 8443 (https://yourdomain.com:8443) 
+
+⚠️ **Note**: Self-signed certificates will show browser warnings. This is normal for development setups.
+
+## File Locations
+
+- **Application**: `~/internet_of_agents/`
+- **SSL Certificates**: `~/.local/ssl/`
+- **Configuration**: `~/.config/internet_of_agents.env`
+- **Service**: `~/.config/systemd/user/internet_of_agents.service`
+- **Logs**: `journalctl --user -u internet_of_agents`
 
 ## Troubleshooting
 
-If you encounter any issues:
+### Common Issues:
 
-1. Check the service status:
-```bash
-systemctl status internet_of_agents
-```
+1. **"python3-venv not found"**:
+   ```bash
+   sudo apt install python3-venv
+   ```
 
-2. View detailed logs:
-```bash
-journalctl -u internet_of_agents -f
-```
+2. **"git not found"**:
+   ```bash
+   sudo apt install git
+   ```
 
-3. For Route53 DNS issues, contact the NANDA support team.
+3. **Service won't start**:
+   ```bash
+   systemctl --user status internet_of_agents
+   journalctl --user -u internet_of_agents -f
+   ```
+
+4. **Port already in use**:
+   The setup uses ports 8080/8443. Make sure these aren't used by other services.
 
 ## Requirements
 
 - Python 3.6 or higher
+- python3-venv package
+- Git
 - Linux server (tested on Ubuntu)
 - Anthropic API key
 
 ## Support
 
-If you encounter any issues with Route53 DNS setup, please contact the NANDA support team.
+For issues or questions, please check the logs first:
+```bash
+journalctl --user -u internet_of_agents -f
+```
 
 ## License
 

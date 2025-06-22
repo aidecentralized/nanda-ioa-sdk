@@ -8,6 +8,7 @@ import random
 import yaml
 import argparse
 from typing import Dict, Optional
+import getpass
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('nanda_sdk')
@@ -73,11 +74,14 @@ class NandaSdk:
         # Get server's public IP
         server_ip = self.get_public_ip()
         
+        # Get current user for non-root setup
+        current_user = getpass.getuser()
+        
         inventory_content = f"""[servers]
 server ansible_host={server_ip}
 
 [all:vars]
-ansible_user=root
+ansible_user={current_user}
 ansible_connection=local
 ansible_python_interpreter=/usr/bin/python3
 domain_name={self.domain}

@@ -17,6 +17,7 @@ setup(
         'requests==2.31.0',
         'pyyaml==6.0.1',
         'ansible==8.7.0',
+        'cryptography>=3.0',
     ],
     entry_points={
         'console_scripts': [

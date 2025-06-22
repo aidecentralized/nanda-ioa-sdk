@@ -1,75 +1,55 @@
 ---
-- name: Setup Internet of Agents 
+- name: Setup Internet of Agents (Non-Root)
   hosts: servers
-  become: yes
+  become: no
   vars:
-    cert_path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
-    key_path: "/etc/letsencrypt/live/{{ domain_name }}/privkey.pem"
-    venv_path: "/opt/internet_of_agents/venv"
+    home_dir: "{{ ansible_env.HOME }}"
+    app_dir: "{{ home_dir }}/internet_of_agents"
+    venv_path: "{{ app_dir }}/venv"
+    cert_dir: "{{ home_dir }}/.local/ssl"
+    service_port: 8080
+    ssl_port: 8443
 
   tasks:
-    - name: Install required packages
-      apt:
-        name:
-          - python3
-          - python3-pip
-          - python3-venv
-          - git
-          - nginx
-          - snapd
-        state: present
-        update_cache: yes
+    - name: Check if required Python packages are available
+      command: python3 -c "import venv, subprocess, ssl"
+      register: python_check
+      failed_when: false
 
-    - name: Install core snap
-      command: snap install core
-      args:
-        creates: /snap/bin/core
+    - name: Display Python dependency info
+      debug:
+        msg: |
+          ⚠️  If this fails, you may need to install: python3-venv
+          Run: sudo apt install python3-venv (requires sudo once)
+      when: python_check.rc != 0
 
-    - name: Refresh core snap
-      command: snap refresh core
+    - name: Ensure user has git installed
+      command: which git
+      register: git_check
+      failed_when: false
 
-    - name: Install certbot via snap
-      command: snap install --classic certbot
-      args:
-        creates: /snap/bin/certbot
+    - name: Display git dependency info
+      debug:
+        msg: |
+          ⚠️  Git is required but not found. 
+          Run: sudo apt install git (requires sudo once)
+      when: git_check.rc != 0
 
-    - name: Create symlink for certbot
-      file:
-        src: /snap/bin/certbot
-        dest: /usr/bin/certbot
-        state: link
-        force: yes
-
-    - name: Create certificates directory
+    - name: Create user directories
       file:
         path: "{{ item }}"
         state: directory
         mode: '0755'
       with_items:
-        - /etc/letsencrypt/live
-        - /etc/letsencrypt/archive
-
-    - name: Stop Nginx to free port 80
-      service:
-        name: nginx
-        state: stopped
-
-    - name: Generate SSL certificates
-      command: "certbot certonly --standalone -d {{ domain_name }} --non-interactive --agree-tos --email admin@{{ domain_name }}"
-      register: certbot_result
-      changed_when: certbot_result.rc == 0
-      failed_when: certbot_result.rc != 0 and 'already exists' not in certbot_result.stderr
-
-    - name: Start Nginx after certificate generation
-      service:
-        name: nginx
-        state: started
-      when: certbot_result.rc == 0
+        - "{{ app_dir }}"
+        - "{{ cert_dir }}"
+        - "{{ home_dir }}/.local/bin"
+        - "{{ home_dir }}/.config/systemd/user"
 
     - name: Clone internet_of_agents repository
       git:
         repo: "{{ github_repo }}"
-        dest: /opt/internet_of_agents
+        dest: "{{ app_dir }}"
         version: main
         force: yes
         clone: yes
@@ -77,48 +57,64 @@
         accept_hostkey: yes
 
     - name: Create Python virtual environment
-      command: python3 -m venv {{ venv_path }}
+      command: python3 -m venv "{{ venv_path }}"
       args:
         creates: "{{ venv_path }}"
 
     - name: Install Python requirements in virtual environment
       pip:
-        requirements: /opt/internet_of_agents/requirements.txt
+        requirements: "{{ app_dir }}/requirements.txt"
         state: present
         virtualenv: "{{ venv_path }}"
 
-    - name: Create .bashrc directory if it doesn't exist
-      file:
-        path: /root/.bashrc
-        state: touch
-        mode: '0644'
+    - name: Create self-signed SSL certificate for development
+      block:
+        - name: Generate private key
+          openssl_privatekey:
+            path: "{{ cert_dir }}/privkey.pem"
+            size: 2048
+          
+        - name: Generate certificate signing request
+          openssl_csr:
+            path: "{{ cert_dir }}/cert.csr"
+            privatekey_path: "{{ cert_dir }}/privkey.pem"
+            common_name: "{{ domain_name }}"
+            
+        - name: Generate self-signed certificate
+          openssl_certificate:
+            path: "{{ cert_dir }}/fullchain.pem"
+            privatekey_path: "{{ cert_dir }}/privkey.pem"
+            csr_path: "{{ cert_dir }}/cert.csr"
+            provider: selfsigned
+      rescue:
+        - name: Create simple self-signed cert using openssl command
+          shell: |
+            openssl req -x509 -newkey rsa:2048 -keyout "{{ cert_dir }}/privkey.pem" \
+            -out "{{ cert_dir }}/fullchain.pem" -days 365 -nodes \
+            -subj "/C=US/ST=State/L=City/O=Organization/CN={{ domain_name }}"
+          args:
+            creates: "{{ cert_dir }}/fullchain.pem"
 
-    - name: Add Anthropic API key to .bashrc
+    - name: Update .bashrc with environment variables
       lineinfile:
-        path: /root/.bashrc
-        line: 'export ANTHROPIC_API_KEY="{{ anthropic_api_key }}"'
+        path: "{{ home_dir }}/.bashrc"
+        line: "{{ item }}"
         state: present
-
-    - name: Add Smithery API key to .bashrc
-      lineinfile:
-        path: /root/.bashrc
-        line: 'export SMITHERY_API_KEY="{{ smithery_api_key }}"'
-        state: present
-
-    - name: Add virtual environment activation to .bashrc
-      lineinfile:
-        path: /root/.bashrc
-        line: 'source {{ venv_path }}/bin/activate'
-        state: present
+        create: yes
+      with_items:
+        - 'export ANTHROPIC_API_KEY="{{ anthropic_api_key }}"'
+        - 'export SMITHERY_API_KEY="{{ smithery_api_key }}"'
+        - 'export VIRTUAL_ENV="{{ venv_path }}"'
+        - 'export PATH="${VIRTUAL_ENV}/bin:$PATH"'
 
     - name: Make start_running_agents.sh executable
       file:
-        path: /opt/internet_of_agents/agents/start_running_agents.sh
+        path: "{{ app_dir }}/agents/start_running_agents.sh"
         mode: '0755'
 
-    - name: Create environment file
+    - name: Create user environment file
       copy:
-        dest: /etc/internet_of_agents.env
+        dest: "{{ home_dir }}/.config/internet_of_agents.env"
         content: |
           ANTHROPIC_API_KEY={{ anthropic_api_key }}
           VIRTUAL_ENV={{ venv_path }}
@@ -126,35 +122,70 @@
           DOMAIN_NAME={{ domain_name }}
           SMITHERY_API_KEY={{ smithery_api_key }}
           REGISTRY_URL={{ registry_url }}
+          SERVICE_PORT={{ service_port }}
+          SSL_PORT={{ ssl_port }}
+          CERT_PATH={{ cert_dir }}/fullchain.pem
+          KEY_PATH={{ cert_dir }}/privkey.pem
           {% if num_agents is defined %}
           NUM_AGENTS={{ num_agents }}
           {% endif %}
         mode: '0644'
 
-    - name: Create systemd service for internet_of_agents
+    - name: Create user systemd service
       template:
-        src: templates/internet_of_agents.service.j2
-        dest: /etc/systemd/system/internet_of_agents.service
+        src: templates/internet_of_agents_user.service.j2
+        dest: "{{ home_dir }}/.config/systemd/user/internet_of_agents.service"
         mode: '0644'
 
-    - name: Start and enable internet_of_agents service
+    - name: Reload user systemd daemon
+      systemd:
+        daemon_reload: yes
+        scope: user
+
+    - name: Enable and start user service
       systemd:
         name: internet_of_agents
         state: started
         enabled: yes
+        scope: user
         daemon_reload: yes
 
-    - name: Display agent link
+    - name: Create startup script for convenience
+      copy:
+        dest: "{{ home_dir }}/.local/bin/start-nanda-agents"
+        content: |
+          #!/bin/bash
+          source {{ home_dir }}/.config/internet_of_agents.env
+          cd {{ app_dir }}/agents
+          {{ venv_path }}/bin/python {{ app_dir }}/agents/start_running_agents.sh
+        mode: '0755'
+
+    - name: Display agent information
       debug:
         msg: |
           ===================================================
-          Your agent is now ready! Access your agent{% if num_agents is defined and num_agents > 1 %}s{% endif %} at:
+          🎉 Your agent is now ready! 
+          
+          📍 Running on non-privileged ports:
+          - HTTP: http://{{ domain_name }}:{{ service_port }}
+          - HTTPS: https://{{ domain_name }}:{{ ssl_port }} (self-signed cert)
+          
+          🌐 Access your agent{% if num_agents is defined and num_agents > 1 %}s{% endif %} at:
           {% if num_agents is defined and num_agents > 1 %}
           {% for i in range(num_agents) %}
-             Agent {{ i + 1 }}:||||      https://chat.nanda-registry.com/landing.html?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}{{ i }}      ||||
+             Agent {{ i + 1 }}: https://chat.nanda-registry.com/landing.html?agentId=agents{{ agent_id_prefix }}{{ i }}&port={{ ssl_port }}
           {% endfor %}
           {% else %}
-          ||||   https://chat.nanda-registry.com/landing.html?agentId={% if 'nanda-registry.com' in domain_name %}agentm{% else %}agents{% endif %}{{ agent_id_prefix }}0    ||||
+          https://chat.nanda-registry.com/landing.html?agentId=agents{{ agent_id_prefix }}0&port={{ ssl_port }}
           {% endif %}
+          
+          🔧 Management commands:
+          - Start: systemctl --user start internet_of_agents
+          - Stop: systemctl --user stop internet_of_agents  
+          - Status: systemctl --user status internet_of_agents
+          - Logs: journalctl --user -u internet_of_agents -f
+          
+          📁 Files located in: {{ app_dir }}
+          🔐 SSL certs in: {{ cert_dir }}
           ===================================================
       no_log: false 

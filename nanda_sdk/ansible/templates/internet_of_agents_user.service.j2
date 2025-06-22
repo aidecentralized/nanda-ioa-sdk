@@ -1,0 +1,16 @@
+[Unit]
+Description=Internet of Agents Service (User)
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+WorkingDirectory={{ app_dir }}/agents
+EnvironmentFile={{ home_dir }}/.config/internet_of_agents.env
+ExecStartPre=/bin/bash -c 'source {{ home_dir }}/.config/internet_of_agents.env'
+ExecStart=/bin/bash -c 'source {{ home_dir }}/.config/internet_of_agents.env && {{ venv_path }}/bin/python {{ app_dir }}/agents/start_running_agents.sh'
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target 
