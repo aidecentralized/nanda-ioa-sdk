@@ -3,12 +3,11 @@ Description=Internet of Agents Service (User)
 After=network.target
 
 [Service]
-Type=simple
+Type=oneshot
 WorkingDirectory={{ app_dir }}/agents
 EnvironmentFile={{ home_dir }}/.config/internet_of_agents.env
 ExecStart=/bin/bash -c 'source {{ home_dir }}/.config/internet_of_agents.env && {{ app_dir }}/agents/start_running_agents.sh'
-Restart=always
-RestartSec=10
+RemainAfterExit=yes
 
 [Install]
 WantedBy=default.target 
