@@ -112,6 +112,18 @@
         path: "{{ app_dir }}/agents/start_running_agents.sh"
         mode: '0755'
 
+    - name: Update startup script to use user paths
+      replace:
+        path: "{{ app_dir }}/agents/start_running_agents.sh"
+        regexp: '/opt/internet_of_agents'
+        replace: "{{ app_dir }}"
+
+    - name: Update startup script environment file path
+      replace:
+        path: "{{ app_dir }}/agents/start_running_agents.sh"
+        regexp: '/etc/internet_of_agents.env'
+        replace: "{{ home_dir }}/.config/internet_of_agents.env"
+
     - name: Create user environment file
       copy:
         dest: "{{ home_dir }}/.config/internet_of_agents.env"
