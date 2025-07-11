@@ -258,6 +258,7 @@
         requirements: /opt/internet_of_agents/requirements.txt
         state: present
         virtualenv: "{{ venv_path }}"
+        virtualenv_python: "{{ python_executable }}"
 
     - name: Create .bashrc directory if it doesn't exist
       file:
