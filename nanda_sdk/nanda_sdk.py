@@ -18,7 +18,7 @@ class NandaSdk:
     def __init__(self, 
                  domain: str,
                  num_agents: int,
-                 registry_url: str = "https://chat.nanda-registry.com",
+                 registry_url: str = "https://chat.nanda-registry.com:6900",
                  agent_id: Optional[int] = None):
         """
         Initialize NANDA SDK
