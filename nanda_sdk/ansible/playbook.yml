@@ -8,7 +8,16 @@
     venv_path: "/opt/internet_of_agents/venv"
 
   tasks:
-    - name: Install required packages
+    - name: Gather system information
+      setup:
+        gather_subset:
+          - '!all'
+          - '!min'
+          - distribution
+          - distribution_major_version
+          - os_family
+    
+    - name: Install required packages (Debian/Ubuntu)
       apt:
         name:
           - python3
@@ -19,26 +28,143 @@
           - snapd
         state: present
         update_cache: yes
+      when: ansible_os_family == "Debian"
+      
+    - name: Install Python 3.11 on Debian/Ubuntu
+      apt:
+        name:
+          - python3.11
+          - python3.11-pip
+          - python3.11-venv
+        state: present
+        update_cache: yes
+      when: ansible_os_family == "Debian"
+      ignore_errors: yes
+      
+    - name: Install required packages (RHEL/CentOS/Fedora)
+      package:
+        name:
+          - python3
+          - python3-pip
+          - git
+          - nginx
+          - snapd
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution != "Amazon"
+      
+    - name: Install Python 3.11 on RHEL/CentOS/Fedora
+      package:
+        name:
+          - python3.11
+          - python3.11-pip
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution != "Amazon"
+      ignore_errors: yes
+      
+    - name: Install required packages (Amazon Linux)
+      package:
+        name:
+          - python3.11
+          - python3.11-pip
+          - git
+          - nginx
+        state: present
+      when: ansible_distribution == "Amazon"
+      
+    - name: Check if python3 venv module is available
+      command: python3 -m venv --help
+      register: venv_check
+      ignore_errors: yes
+      changed_when: false
+      when: ansible_os_family == "RedHat"
+      
+    - name: Log warning if venv module is missing
+      debug:
+        msg: "WARNING: python3 venv module not available. Virtual environment creation may fail."
+      when: ansible_os_family == "RedHat" and venv_check.rc != 0
+      
+    - name: Install python3-venv on RHEL/CentOS 8+ (fallback)
+      package:
+        name: python3-venv
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int >= 8 and venv_check.rc != 0
+      ignore_errors: yes
+      
+    - name: Install EPEL repository (RHEL/CentOS 7)
+      package:
+        name: epel-release
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int == 7
+      
+    - name: Install snapd on RHEL/CentOS 7 from EPEL (not Amazon Linux)
+      package:
+        name: snapd
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution_major_version|int == 7 and ansible_distribution != "Amazon"
+      
+    - name: Enable and start snapd service (RHEL/CentOS, not Amazon Linux)
+      systemd:
+        name: snapd
+        enabled: yes
+        state: started
+      when: ansible_os_family == "RedHat" and ansible_distribution != "Amazon"
+      
+    - name: Create snapd socket symlink (RHEL/CentOS, not Amazon Linux)
+      file:
+        src: /var/lib/snapd/snap
+        dest: /snap
+        state: link
+      when: ansible_os_family == "RedHat" and ansible_distribution != "Amazon"
+      ignore_errors: yes
 
-    - name: Install core snap
+    - name: Install certbot via yum (Amazon Linux)
+      package:
+        name: certbot
+        state: present
+      when: ansible_distribution == "Amazon"
+      
+    - name: Install certbot via package manager (RHEL/CentOS)
+      package:
+        name: certbot
+        state: present
+      when: ansible_os_family == "RedHat" and ansible_distribution != "Amazon"
+      ignore_errors: yes
+      
+    - name: Wait for snapd to be ready (non-Amazon Linux)
+      command: snap wait system seed.loaded
+      when: ansible_os_family == "RedHat" and ansible_distribution != "Amazon"
+      ignore_errors: yes
+      
+    - name: Install core snap (non-Amazon Linux)
       command: snap install core
       args:
         creates: /snap/bin/core
+      when: ansible_distribution != "Amazon"
+      retries: 3
+      delay: 5
 
-    - name: Refresh core snap
+    - name: Refresh core snap (non-Amazon Linux)
       command: snap refresh core
+      when: ansible_distribution != "Amazon"
+      retries: 3
+      delay: 5
 
-    - name: Install certbot via snap
+    - name: Install certbot via snap (non-Amazon Linux)
       command: snap install --classic certbot
       args:
         creates: /snap/bin/certbot
+      when: ansible_distribution != "Amazon"
+      retries: 3
+      delay: 5
 
-    - name: Create symlink for certbot
+    - name: Create symlink for certbot (snap)
       file:
         src: /snap/bin/certbot
         dest: /usr/bin/certbot
         state: link
         force: yes
+      become: yes
+      when: ansible_distribution != "Amazon"
 
     - name: Create certificates directory
       file:
@@ -54,17 +180,29 @@
         name: nginx
         state: stopped
 
+    - name: Check if SSL certificate already exists
+      stat:
+        path: "{{ cert_path }}"
+      register: cert_exists
+      
     - name: Generate SSL certificates
       command: "certbot certonly --standalone -d {{ domain_name }} --non-interactive --agree-tos --email admin@{{ domain_name }}"
       register: certbot_result
       changed_when: certbot_result.rc == 0
-      failed_when: certbot_result.rc != 0 and 'already exists' not in certbot_result.stderr
+      when: not cert_exists.stat.exists
+      
+    - name: Set certbot result for existing certificates
+      set_fact:
+        certbot_result:
+          rc: 0
+          changed: false
+      when: cert_exists.stat.exists
 
     - name: Start Nginx after certificate generation
       service:
         name: nginx
         state: started
-      when: certbot_result.rc == 0
+      when: certbot_result.rc == 0 or cert_exists.stat.exists
 
     - name: Clone internet_of_agents repository
       git:
@@ -76,16 +214,54 @@
         update: yes
         accept_hostkey: yes
 
-    - name: Create Python virtual environment
-      command: python3 -m venv {{ venv_path }}
-      args:
-        creates: "{{ venv_path }}"
+    - name: Check if Python 3.11 is available
+      command: python3.11 --version
+      register: python311_check
+      ignore_errors: yes
+      changed_when: false
+      
+    - name: Check if Python 3.10 is available
+      command: python3.10 --version
+      register: python310_check
+      ignore_errors: yes
+      changed_when: false
+      when: python311_check.rc != 0
+      
+    - name: Set Python executable to use
+      set_fact:
+        python_executable: "{{ 'python3.11' if python311_check.rc == 0 else ('python3.10' if python310_check.rc == 0 else 'python3') }}"
+    
+    - name: Display Python version being used
+      debug:
+        msg: "Using Python executable: {{ python_executable }}"
+        
+    - name: Verify Python executable version
+      command: "{{ python_executable }} --version"
+      register: python_version_output
+      changed_when: false
+      
+    - name: Display actual Python version
+      debug:
+        msg: "{{ python_executable }} version: {{ python_version_output.stdout }}"
+        
+    - name: Warn if using Python < 3.10
+      debug:
+        msg: "WARNING: Using {{ python_executable }}. Some packages may require Python 3.10 or higher."
+      when: python311_check.rc != 0 and python310_check.rc != 0
+    
+    - name: Remove existing virtual environment to ensure clean Python version
+      file:
+        path: "{{ venv_path }}"
+        state: absent
 
+    - name: Create virtual environment with correct Python version
+      command: "{{ python_executable }} -m venv {{ venv_path }}"
+      
+    - name: Upgrade pip in virtual environment
+      command: "{{ venv_path }}/bin/python -m pip install --upgrade pip"
+        
     - name: Install Python requirements in virtual environment
-      pip:
-        requirements: /opt/internet_of_agents/requirements.txt
-        state: present
-        virtualenv: "{{ venv_path }}"
+      command: "{{ venv_path }}/bin/pip install -r /opt/internet_of_agents/requirements.txt"
 
     - name: Create .bashrc directory if it doesn't exist
       file:
@@ -136,6 +312,7 @@
         src: templates/internet_of_agents.service.j2
         dest: /etc/systemd/system/internet_of_agents.service
         mode: '0644'
+      become: yes
 
     - name: Start and enable internet_of_agents service
       systemd:
@@ -143,6 +320,7 @@
         state: started
         enabled: yes
         daemon_reload: yes
+      become: yes
 
     - name: Display agent link
       debug:
