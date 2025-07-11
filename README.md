@@ -1,6 +1,15 @@
+<img width="893" alt="image" src="https://github.com/user-attachments/assets/3e9990ea-1ffa-4aeb-b4fc-6fd17cd036be" />
+
+
 # NANDA SDK
+<img width="886" alt="image" src="https://github.com/user-attachments/assets/0cbab5f6-e4df-4504-ba2d-3ed1942469cb" />
+
 
 A Python SDK for setting up Internet of Agents servers. This tool automates the process of configuring servers with DNS records, SSL certificates, and required software.
+<img width="890" alt="image" src="https://github.com/user-attachments/assets/ce1687d4-1af1-48d3-8d86-75af660b2313" />
+
+
+
 
 ## Installation
 
@@ -13,7 +22,7 @@ ssh into the servers
 sudo apt update && sudo apt install -y python3 python3-pip
 
 # For RHEL/CentOS/Fedora(Amazon Linux):
-sudo yum install -y python3 python3-pip
+sudo dnf install -y python3.11 python3.11-pip python3.11-setuptools
 
 ```
 
