@@ -39,7 +39,17 @@
           - nginx
           - snapd
         state: present
-      when: ansible_os_family == "RedHat"
+      when: ansible_os_family == "RedHat" and ansible_distribution != "Amazon"
+      
+    - name: Install required packages (Amazon Linux)
+      package:
+        name:
+          - python3
+          - python3-pip
+          - git
+          - nginx
+        state: present
+      when: ansible_distribution == "Amazon"
       
     - name: Check if python3 venv module is available
       command: python3 -m venv --help
