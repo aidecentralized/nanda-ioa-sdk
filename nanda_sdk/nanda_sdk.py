@@ -18,7 +18,7 @@ class NandaSdk:
     def __init__(self, 
                  domain: str,
                  num_agents: int,
-                 registry_url: str = "https://chat.nanda-registry.com",
+                 registry_url: str = "https://chat.nanda-registry.com:6900",
                  agent_id: Optional[int] = None):
         """
         Initialize NANDA SDK
@@ -193,8 +193,8 @@ def main():
                        action='store_true',
                        help='Enable verbose output for Ansible playbook')
     parser.add_argument('--registry-url',
-                       default="https://chat.nanda-registry.com",
-                       help='URL of the NANDA registry (default: https://chat.nanda-registry.com)')
+                       default="https://chat.nanda-registry.com:6900",
+                       help='URL of the NANDA registry (default: https://chat.nanda-registry.com:6900)')
 
     args = parser.parse_args()
 
