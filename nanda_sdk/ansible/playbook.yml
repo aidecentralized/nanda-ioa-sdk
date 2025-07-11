@@ -254,6 +254,13 @@
         path: "{{ venv_path }}"
         state: absent
 
+    - name: Upgrade pip in virtual environment
+      pip:
+        name: pip
+        state: latest
+        virtualenv: "{{ venv_path }}"
+        virtualenv_python: "{{ python_executable }}"
+        
     - name: Install Python requirements in virtual environment
       pip:
         requirements: /opt/internet_of_agents/requirements.txt
