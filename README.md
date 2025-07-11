@@ -9,7 +9,11 @@ Pre-requistie commands
 ssh into the servers
 
 ```bash
-sudo apt update  && sudo apt install python3 python3-pip
+# For Ubuntu/Debian:
+sudo apt update && sudo apt install -y python3 python3-pip
+
+# For RHEL/CentOS/Fedora(Amazon Linux):
+sudo yum install -y python3 python3-pip
 
 ```
 
