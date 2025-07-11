@@ -243,15 +243,24 @@
       debug:
         msg: "Using Python executable: {{ python_executable }}"
         
+    - name: Verify Python executable version
+      command: "{{ python_executable }} --version"
+      register: python_version_output
+      changed_when: false
+      
+    - name: Display actual Python version
+      debug:
+        msg: "{{ python_executable }} version: {{ python_version_output.stdout }}"
+        
     - name: Warn if using Python < 3.10
       debug:
         msg: "WARNING: Using {{ python_executable }}. Some packages may require Python 3.10 or higher."
       when: python311_check.rc != 0 and python310_check.rc != 0
     
-    - name: Create Python virtual environment
-      command: "{{ python_executable }} -m venv {{ venv_path }}"
-      args:
-        creates: "{{ venv_path }}"
+    - name: Remove existing virtual environment to ensure clean Python version
+      file:
+        path: "{{ venv_path }}"
+        state: absent
 
     - name: Install Python requirements in virtual environment
       pip:
