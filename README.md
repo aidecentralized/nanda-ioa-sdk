@@ -22,7 +22,7 @@ ssh into the servers
 sudo apt update && sudo apt install -y python3 python3-pip
 
 # For RHEL/CentOS/Fedora(Amazon Linux):
-sudo dnf install -y python3.11 python3.11-pip python3.11-setuptools
+sudo dnf install -y python3 python3-pip
 
 ```
 
