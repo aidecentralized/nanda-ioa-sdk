@@ -254,19 +254,14 @@
         path: "{{ venv_path }}"
         state: absent
 
+    - name: Create virtual environment with correct Python version
+      command: "{{ python_executable }} -m venv {{ venv_path }}"
+      
     - name: Upgrade pip in virtual environment
-      pip:
-        name: pip
-        state: latest
-        virtualenv: "{{ venv_path }}"
-        virtualenv_python: "{{ python_executable }}"
+      command: "{{ venv_path }}/bin/python -m pip install --upgrade pip"
         
     - name: Install Python requirements in virtual environment
-      pip:
-        requirements: /opt/internet_of_agents/requirements.txt
-        state: present
-        virtualenv: "{{ venv_path }}"
-        virtualenv_python: "{{ python_executable }}"
+      command: "{{ venv_path }}/bin/pip install -r /opt/internet_of_agents/requirements.txt"
 
     - name: Create .bashrc directory if it doesn't exist
       file:
