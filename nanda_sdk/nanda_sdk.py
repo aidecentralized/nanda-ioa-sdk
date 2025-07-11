@@ -193,7 +193,7 @@ def main():
                        action='store_true',
                        help='Enable verbose output for Ansible playbook')
     parser.add_argument('--registry-url',
-                       default="https://chat.nanda-registry.com",
+                       default="https://chat.nanda-registry.com:6900",
                        help='URL of the NANDA registry (default: https://chat.nanda-registry.com)')
 
     args = parser.parse_args()
