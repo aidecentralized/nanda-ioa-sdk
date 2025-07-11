@@ -196,6 +196,7 @@ def main():
                        default="https://chat.nanda-registry.com:6900",
                        help='URL of the NANDA registry (default: https://chat.nanda-registry.com:6900)')
 
+
     args = parser.parse_args()
 
     if not args.anthropic_key:
