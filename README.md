@@ -3,6 +3,7 @@
 A Python SDK for setting up Internet of Agents servers. This tool automates the process of configuring servers with DNS records, SSL certificates, and required software.
 <img width="890" alt="image" src="https://github.com/user-attachments/assets/ce1687d4-1af1-48d3-8d86-75af660b2313" />
 
+Instructions: https://docs.google.com/presentation/d/13NCr1QPgL8Ln-nF0h7KKg8q6wOkuEXMp/edit?usp=sharing&ouid=108983880603476863262&rtpof=true&sd=true
 
 ## 🛠️ Setup Prerequisites
 
