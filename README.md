@@ -1,6 +1,4 @@
 # NANDA SDK
-<img width="886" alt="image" src="https://github.com/user-attachments/assets/0cbab5f6-e4df-4504-ba2d-3ed1942469cb" />
-
 
 A Python SDK for setting up Internet of Agents servers. This tool automates the process of configuring servers with DNS records, SSL certificates, and required software.
 <img width="890" alt="image" src="https://github.com/user-attachments/assets/ce1687d4-1af1-48d3-8d86-75af660b2313" />
