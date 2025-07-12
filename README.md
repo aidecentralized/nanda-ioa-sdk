@@ -1,6 +1,3 @@
-<img width="893" alt="image" src="https://github.com/user-attachments/assets/3e9990ea-1ffa-4aeb-b4fc-6fd17cd036be" />
-
-
 # NANDA SDK
 <img width="886" alt="image" src="https://github.com/user-attachments/assets/0cbab5f6-e4df-4504-ba2d-3ed1942469cb" />
 
